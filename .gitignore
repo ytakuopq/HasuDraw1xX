@@ -1,0 +1,34 @@
+# MATLAB / Simulink
+*.asv
+*.m~
+*.mat
+*.mex*
+*.mdl.autosave
+*.slxc
+*.slprj/
+*.autosave
+*.bak
+*.tmp
+*.log
+*.fig
+*.user
+*.p
+*.mexw*
+*.mexmaci*
+*.mexglx
+
+# OS / エディタの一時ファイル
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# VS Code 設定
+.vscode/
+
+# その他、あなたのプロジェクトで生成されるデータ類
+data/
+results/
+output/
+temp/
