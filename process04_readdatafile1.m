@@ -25,12 +25,17 @@ while true
         % 既にキャッシュがある場合はそれをロード
         if isfile(matfile)
             fprintf('Cached MAT file found: %s\n', matfile);
+            dcold = dc;
             load(matfile, 'dcread');
-            dc = dcread;
-            dc.stored = true;
-            dc.divided = false;
+            dcold.xa0 = dcread.xa0;
+            dcold.ya0backup = dcread.ya0backup;
+            dcold.num = dcread.num;
+            dcold.numy = dcread.numy;
+            dcold.stored = true;
+            dcold.divided = false;
+            dc = dcold;
             dc.fname = fnamex;    % 単一の真実
-            fname0 = dc.fname;    % 旧互換
+            %fname0 = dc.fname;    % 旧互換
             return;
         end
 
@@ -53,6 +58,7 @@ while true
     fprintf('Reading data file %s\n', fnamex);
     [xa0, ya0, num, numy] = readKYSdataCSV1(fnamex);
 
+    % 時間軸の開始を0にする。
     if ix == 0
         xa0base = xa0(1);
         dc.xa0 = xa0 - xa0base;
@@ -74,4 +80,17 @@ end
 fprintf('Reading time %.2f min\n', (now - timestart) * 24 * 60);
 dc.fname = fname;      % 正式な格納先
 fname0   = dc.fname;   % 旧互換用（削除予定）
+
+
+if(any(isnan(dc.xa0)) || any(isnan(dc.ya0backup)))
+    fprintf('NaNが混じってしまったようです。すいません。\n');
+    fprintf('NaNを0に置き換えて処理ぞ続行します。\n');
+    dc.xa0(isnan(dc.xa0))=0;
+    dc.ya0backup(isnan(dc.xa0))=0;    
+    return;
+else
+    dcread = dc;
+    save(matfile, 'dcread', '-v7.3');
+end
+
 end

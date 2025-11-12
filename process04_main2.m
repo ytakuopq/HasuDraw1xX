@@ -24,13 +24,67 @@ end
 %% --- サンプリング間隔を確定 ---
 if isfield(dc, 'dxa0_init')
     dc.dxa0 = dc.dxa0_init;
+    dxa0 = dc.dxa0;
 else
     dc.dxa0 = dc.xa0(2) - dc.xa0(1);
 end
 
 ya0 = dc.ya0backup;
+numhead = mc.numhead;
+numbeam = mc.numbeam;
 numy = dc.numy;
+num = dc.num;
+xrange = mc.xrange;
 iscannum = mc.iscannum;
+scanv = mc.scanv;
+% scanrange = mc.scanrange; % 金野さんがスキャンしているレンジ 
+
+%%
+% 生データ描画
+% 縦にずらして全範囲を描画
+%if(mc.WavDivided2AllReadDataDraw)
+%    strtitle = sprintf('生データ %s, scan speed %7.2f mm/s.',  fname0, mc.scanv);
+%    dispWavHead(ya0, mc.numhead, mc.numbeam, 50, strtitle, 0.15 );
+%end
+
+%% 
+% 2024/11/6 新新PDBOX用　スロープ変更分を換算
+if(mc.dBscalingEnabled)
+    for ih=1:numhead
+        for ib = 1:numbeam
+            ix = (ih-1)*numbeam + ib;
+
+            ytmp = ya0(ix, :);
+            ya0(ix, :) = ytmp *2.4058-2.1249;
+        end
+    end
+    fprintf('reread and conversion done\n');
+end
+
+%% 
+% 2024/11/6 暗電流をソフト処理
+if(mc.PDAddDarkCurEnabled)
+    for ih=1:numhead
+        vd = mc.PDDardCurAdded; % 暗電圧
+        v0 = 0.5; % 0.5V/10dB
+        vd10 = 10^(vd/v0);
+
+        for ib = 1:numbeam
+            ix = (ih-1)*numbeam + ib;
+
+            ytmp = ya0(ix, :);
+            ya0(ix, :) = 0.5 * log10(10.^(ytmp/v0) + vd10);
+        end
+    end
+    fprintf('dark volt added\n');
+end
+
+dc.ya0processed = ya0;
+
+%%
+% debug
+figure(50);
+plot(ya0);
 
 %% --- エッジ検出・分割処理 ---
 [~, ~, flag_wavdiv] = process04_checkfname(dc.fname);
